@@ -10,6 +10,6 @@
 
 * DigiX by Digistump Arduino clone (onboard microSD)
 * DS18B20 Dallas OneWire temperature sensors
-* Adafruit BMP180
+* Adafruit BMP180 (temp, pressure, altitude)
 
 ![sample](https://raw.github.com/PacificSpaceflight/Balloon/master/sensor.jpg)
