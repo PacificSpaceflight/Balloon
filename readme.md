@@ -1,13 +1,15 @@
 # high-altitude balloon data logger
 
-* pressure
-* temperature
-* altitude
+# goals
 
-### Arduino + SD card
+* minimum weight
+* SD card logging of pressure, altitude, and temperature
+* 9V battery trigger release relay, to end the trip by inverting the balloon
 
-we’re using a DigiX by Digistump, with microSD onboard
+# current part list
 
-### Adafruit BMP180
+* DigiX by Digistump Arduino clone (onboard microSD)
+* DS18B20 Dallas OneWire temperature sensors
+* Adafruit BMP180
 
 ![sample](https://raw.github.com/PacificSpaceflight/Balloon/master/sensor.jpg)
