@@ -12,4 +12,10 @@
 * DS18B20 Dallas OneWire temperature sensors
 * Adafruit BMP180 (temp, pressure, altitude)
 
+# libraries
+
+* OneWire (http://playground.arduino.cc/Learning/OneWire)
+* Dallas Temperature (http://www.milesburton.com/Dallas_Temperature_Control_Library)
+* Adafruit BMP (www.adafruit.com)
+
 ![sample](https://raw.github.com/PacificSpaceflight/Balloon/master/sensor.jpg)

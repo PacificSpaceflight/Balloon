@@ -8,6 +8,9 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+#define ONE_WIRE_BUS 2  // one wire on digital 2
+#define IGNITION_BUS 3  // line burner on digital 3
+
 // flight duration in seconds, currently set to 1.5 hours
 #define FLIGHT_DURATION 5400 // 60sec * 60min * 1.5hrs
 
@@ -20,9 +23,6 @@ unsigned long elapsedSeconds = 0;
 const int chipSelect = 4;
 Adafruit_BMP085 bmp;
 
-#define ONE_WIRE_BUS 2
-#define IGNITION_BUS 3
-
 #define TEMPERATURE_PRECISION 9
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
@@ -33,17 +33,15 @@ DallasTemperature sensors(&oneWire);
 DeviceAddress insideThermometer, outsideThermometer;
 
 void setup(){
-  Serial.begin(9600);
-  while(!Serial) {}
+//  Serial.begin(9600);
+//  while(!Serial) {}
 
   if (!bmp.begin()) {
 //    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
     while(1) {}
   }
 //  Serial.print("Initializing SD card...");
-  pinMode(10, OUTPUT);
-  pinMode(IGNITION_BUS, OUTPUT);
-  digitalWrite(IGNITION_BUS, LOW);
+  pinMode(10, OUTPUT);  
   if (!SD.begin(chipSelect)) {
 //    Serial.println("Card failed, or not present");
     return;
@@ -52,18 +50,15 @@ void setup(){
   sensors.begin();
   sensors.getDeviceCount();
   sensors.isParasitePowerMode();
-  
   sensors.getAddress(insideThermometer, 0);
   sensors.getAddress(outsideThermometer, 1);
-
   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
   sensors.setResolution(outsideThermometer, TEMPERATURE_PRECISION);
-
   sensors.getResolution(insideThermometer);
   sensors.getResolution(outsideThermometer);
 
-
-//  Serial.println("card initialized.");
+// prep ignition line
+  pinMode(IGNITION_BUS, OUTPUT);
 }
 
 void loop(){
@@ -71,7 +66,6 @@ void loop(){
   ///////////////////////////////////////////////
   //////////  BEGIN OneWire DS18S20  ////////////
   ///////////////////////////////////////////////
-
 
   sensors.requestTemperatures();
 
@@ -113,6 +107,11 @@ void loop(){
   else {
 //    Serial.println("error opening datalog.txt");
   }
+  
+  ////////////////////////////////////////
+  ///////// TIME AND IGNITER  ////////////
+  ////////////////////////////////////////
+
   elapsedSeconds = millis() / 1000.0;
 //  Serial.println(elapsedSeconds);
   if(elapsedSeconds > FLIGHT_DURATION && !line_has_been_cut){
@@ -124,9 +123,9 @@ void loop(){
 // burn the igniter, cut the line
 void ignite(){
   digitalWrite(IGNITION_BUS, HIGH);
-  Serial.println("IGNITION ON");
+//  Serial.println("IGNITION ON");
   delay(IGNITION_DURATION);
   digitalWrite(IGNITION_BUS, LOW);
-  Serial.println("IGNITION OFF");
+//  Serial.println("IGNITION OFF");
   line_has_been_cut = 1;
 }
