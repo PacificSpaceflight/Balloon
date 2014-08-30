@@ -8,24 +8,33 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+// flight duration in seconds, currently set to 1.5 hours
+#define FLIGHT_DURATION 5400 // 60sec * 60min * 1.5hrs
+
+// ignite for 10 seconds
+#define IGNITION_DURATION 10000 // in milliseconds
+
+int line_has_been_cut = 0;
+unsigned long elapsedSeconds = 0;
+
 const int chipSelect = 4;
 Adafruit_BMP085 bmp;
 
-#define ONE_WIRE_BUS 10
+#define ONE_WIRE_BUS 2
+#define IGNITION_BUS 3
+
 #define TEMPERATURE_PRECISION 9
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
-
 // Pass our oneWire reference to Dallas Temperature. 
 DallasTemperature sensors(&oneWire);
-
 // arrays to hold device addresses
 DeviceAddress insideThermometer, outsideThermometer;
 
 void setup(){
-//  Serial.begin(9600);
-//  while(!Serial) {}
+  Serial.begin(9600);
+  while(!Serial) {}
 
   if (!bmp.begin()) {
 //    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
@@ -33,6 +42,8 @@ void setup(){
   }
 //  Serial.print("Initializing SD card...");
   pinMode(10, OUTPUT);
+  pinMode(IGNITION_BUS, OUTPUT);
+  digitalWrite(IGNITION_BUS, LOW);
   if (!SD.begin(chipSelect)) {
 //    Serial.println("Card failed, or not present");
     return;
@@ -56,7 +67,7 @@ void setup(){
 }
 
 void loop(){
-
+  
   ///////////////////////////////////////////////
   //////////  BEGIN OneWire DS18S20  ////////////
   ///////////////////////////////////////////////
@@ -79,7 +90,9 @@ void loop(){
 //  Serial.print(bmp.readAltitude(101500));
 //  Serial.println(" meters");
 
-  String dataString = "Temp1:";  // string to save to microSD card
+  String dataString = "Time:";  // string to save to microSD card
+  dataString += String(elapsedSeconds);
+  dataString += ", Temp1:";
   dataString += String(bmp.readTemperature() * 1.8 + 32.0);
   dataString += ", Temp2:";
   dataString += String(temp1 * 1.8 + 32.0);
@@ -100,6 +113,20 @@ void loop(){
   else {
 //    Serial.println("error opening datalog.txt");
   }
-  
+  elapsedSeconds = millis() / 1000.0;
+//  Serial.println(elapsedSeconds);
+  if(elapsedSeconds > FLIGHT_DURATION && !line_has_been_cut){
+    ignite();
+  }
   delay(1000);
+}
+
+// burn the igniter, cut the line
+void ignite(){
+  digitalWrite(IGNITION_BUS, HIGH);
+  Serial.println("IGNITION ON");
+  delay(IGNITION_DURATION);
+  digitalWrite(IGNITION_BUS, LOW);
+  Serial.println("IGNITION OFF");
+  line_has_been_cut = 1;
 }
