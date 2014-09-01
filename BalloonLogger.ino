@@ -9,13 +9,14 @@
 #include <DallasTemperature.h>
 
 #define ONE_WIRE_BUS 2  // one wire on digital 2
-#define IGNITION_BUS 3  // line burner on digital 3
+//#define RELEASE_VALVE 5  // balloon ine connection on digital 3
 
 // flight duration in seconds, currently set to 1.5 hours
 #define FLIGHT_DURATION 5400 // 60sec * 60min * 1.5hrs
 
 // ignite for 10 seconds
-#define IGNITION_DURATION 10000 // in milliseconds
+#define PULSE_WIDTH 250       // in milliseconds
+#define PULSE_DURATION 300000 // in milliseconds     // 5 minutes
 
 int line_has_been_cut = 0;
 unsigned long elapsedSeconds = 0;
@@ -40,6 +41,13 @@ void setup(){
 //    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
     while(1) {}
   }
+  
+  // prep ignition line  
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(7, OUTPUT);
+
+  
 //  Serial.print("Initializing SD card...");
   pinMode(10, OUTPUT);  
   if (!SD.begin(chipSelect)) {
@@ -55,10 +63,7 @@ void setup(){
   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
   sensors.setResolution(outsideThermometer, TEMPERATURE_PRECISION);
   sensors.getResolution(insideThermometer);
-  sensors.getResolution(outsideThermometer);
-
-// prep ignition line
-  pinMode(IGNITION_BUS, OUTPUT);
+  sensors.getResolution(outsideThermometer);  
 }
 
 void loop(){
@@ -115,17 +120,21 @@ void loop(){
   elapsedSeconds = millis() / 1000.0;
 //  Serial.println(elapsedSeconds);
   if(elapsedSeconds > FLIGHT_DURATION && !line_has_been_cut){
-    ignite();
+    releaseBalloon();
   }
   delay(1000);
 }
 
-// burn the igniter, cut the line
-void ignite(){
-  digitalWrite(IGNITION_BUS, HIGH);
-//  Serial.println("IGNITION ON");
-  delay(IGNITION_DURATION);
-  digitalWrite(IGNITION_BUS, LOW);
-//  Serial.println("IGNITION OFF");
+// release the connection to the line
+void releaseBalloon(){
+  for(int i = 0; i < 600; i++){  // 5 minutes
+    digitalWrite(5, HIGH);
+    digitalWrite(6, HIGH);
+    delay(PULSE_WIDTH);
+    digitalWrite(5, LOW);
+    digitalWrite(6, LOW);
+    delay(PULSE_WIDTH);
+  }
+  
   line_has_been_cut = 1;
 }
